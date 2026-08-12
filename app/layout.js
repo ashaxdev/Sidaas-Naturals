@@ -25,9 +25,9 @@ export async function generateMetadata() {
       settings.seoDescription ||
       "Sidaas Naturals — 100% natural, eco-friendly, handmade products from Surambati valasu, Erode.",
     icons: {
-      icon: "/images/logo.jpeg",
-      shortcut: "/images/logo.jpeg",
-      apple: "/images/logo.jpeg",
+      icon: "/images/logo.png",
+      shortcut: "/images/logo.png",
+      apple: "/images/logo.png",
     },
   };
 }

@@ -85,7 +85,7 @@ export default function Navbar({ settings }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:px-8">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/images/logo.jpeg"
+              src="/images/logo.png"
               alt={storeName}
               width={55}
               height={55}

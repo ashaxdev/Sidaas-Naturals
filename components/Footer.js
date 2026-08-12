@@ -84,7 +84,7 @@ export default function Footer({ settings }) {
         <div>
           <div className="flex items-center gap-4 mb-5">
             <Image
-              src="/images/logo.jpeg"
+              src="/images/logo.png"
               alt={`${storeName} Logo`}
               width={80}
               height={80}
