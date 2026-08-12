@@ -15,13 +15,13 @@ function BrandBadge({ children, background, className }) {
   );
 }
 
-function FacebookIcon({ className }) {
-  return (
-    <BrandBadge background="#1877F2" className={className}>
-      <FaFacebookF className="w-[52%] h-[52%]" />
-    </BrandBadge>
-  );
-}
+// function FacebookIcon({ className }) {
+//   return (
+//     <BrandBadge background="#1877F2" className={className}>
+//       <FaFacebookF className="w-[52%] h-[52%]" />
+//     </BrandBadge>
+//   );
+// }
 
 function InstagramIcon({ className }) {
   return (
@@ -34,23 +34,23 @@ function InstagramIcon({ className }) {
   );
 }
 
-function AmazonIcon({ className }) {
-  return (
-    <BrandBadge background="#232F3E" className={className}>
-      <FaAmazon className="w-[58%] h-[58%]" style={{ color: "#FF9900" }} />
-    </BrandBadge>
-  );
-}
+// function AmazonIcon({ className }) {
+//   return (
+//     <BrandBadge background="#232F3E" className={className}>
+//       <FaAmazon className="w-[58%] h-[58%]" style={{ color: "#FF9900" }} />
+//     </BrandBadge>
+//   );
+// }
 
-function MeeshoIcon({ className }) {
-  return (
-    <BrandBadge background="#F43397" className={className}>
-      <span className="font-black italic" style={{ fontSize: "1.1em", lineHeight: 1 }}>
-        M
-      </span>
-    </BrandBadge>
-  );
-}
+// function MeeshoIcon({ className }) {
+//   return (
+//     <BrandBadge background="#F43397" className={className}>
+//       <span className="font-black italic" style={{ fontSize: "1.1em", lineHeight: 1 }}>
+//         M
+//       </span>
+//     </BrandBadge>
+//   );
+// }
 
 export default function Footer({ settings }) {
   const storeName = settings?.storeName || "Sidaas Naturals";
@@ -60,21 +60,21 @@ export default function Footer({ settings }) {
 
   const instagram =
     settings?.instagram ||
-    "https://www.instagram.com/kmc_organic_products?igsh=MWZncXMxN2xvMjMyMA==";
-  const facebook =
-    settings?.facebook || "https://www.facebook.com/share/1EPxhtXdps/?mibextid=wwXIfr";
-  const amazon =
-    settings?.amazon ||
-    "https://www.amazon.in/b?ie=UTF8&node=27943762031&me=AW3M1SX9Q4BOW";
-  const meesho = settings?.meesho || "https://www.meesho.com/KMCORGANICFARM?_ms=3.0.1";
-  const youtube = settings?.youtube;
+    "https://www.instagram.com/sidaas_naturals_cosmatics?igsh=MTJzcDU2cHhzbWNnYQ==";
+  // const facebook =
+  //   settings?.facebook || "https://www.facebook.com/share/1EPxhtXdps/?mibextid=wwXIfr";
+  // const amazon =
+  //   settings?.amazon ||
+  //   "https://www.amazon.in/b?ie=UTF8&node=27943762031&me=AW3M1SX9Q4BOW";
+  // const meesho = settings?.meesho || "https://www.meesho.com/KMCORGANICFARM?_ms=3.0.1";
+  // const youtube = settings?.youtube;
 
   const socialLinks = [
-    { href: facebook, label: "Facebook", Icon: FacebookIcon },
+    // { href: facebook, label: "Facebook", Icon: FacebookIcon },
     { href: instagram, label: "Instagram", Icon: InstagramIcon },
-    { href: amazon, label: "Amazon", Icon: AmazonIcon },
-    { href: meesho, label: "Meesho", Icon: MeeshoIcon },
-    { href: youtube, label: "YouTube", Icon: null },
+    // { href: amazon, label: "Amazon", Icon: AmazonIcon },
+    // { href: meesho, label: "Meesho", Icon: MeeshoIcon },
+    // { href: youtube, label: "YouTube", Icon: null },
   ].filter((s) => s.href);
 
   return (
@@ -114,13 +114,13 @@ export default function Footer({ settings }) {
               </p>
             )}
 
-            <p className="text-sm text-green-200">
+            {/* <p className="text-sm text-green-200">
               GST No: {settings?.gst || "33CFZPA9521C1ZH"}
             </p>
 
             <p className="text-sm text-green-200">
               MSME Registration: {settings?.msme || "TN-18-0098443"}
-            </p>
+            </p> */}
 
             {whatsapp && (
               <a
