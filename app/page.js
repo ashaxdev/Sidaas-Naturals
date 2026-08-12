@@ -31,6 +31,7 @@ const WHY_CHOOSE = [
   { title: "Premium Quality", desc: "Carefully crafted with perfection" },
   { title: "Pan India Delivery", desc: "Safe & timely, everywhere" },
 ];
+
 const CATEGORY_IMAGES = {
   "Handmade Wire Bags": "/categroy/wire-bags.png",
   "Organic Fertilizers & Soil Enhancers": "/categroy/organic-fertilizers.png",
@@ -39,6 +40,7 @@ const CATEGORY_IMAGES = {
   "Handmade Wooden Toys & Miniatures": "/categroy/wooden-toys.png",
   "Herbal Products": "/categroy/herbal-products.png",
 };
+
 export default async function HomePage() {
   const { categories, bestSelling } = await getData();
   const settings = await getSettings();

@@ -16,7 +16,7 @@ export default function BottomNav() {
 
   // Hide entirely on admin routes
   if (pathname?.startsWith("/admin")) return null;
-
+ 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/15 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.06)] md:hidden">
       <div className="grid grid-cols-4">
