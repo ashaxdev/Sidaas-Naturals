@@ -13,8 +13,14 @@ async function isValidToken(token) {
   }
 }
 
+function withPathname(req) {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", req.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
 export default async function proxy(req) {
-    const { pathname } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
   const isAdminApiRoute =
@@ -30,7 +36,7 @@ export default async function proxy(req) {
   const isPublicOrderCreate = pathname === "/api/orders" && method === "POST";
 
   if (!isAdminRoute && (!isAdminApiRoute || isReadOnlyPublic || isPublicOrderCreate)) {
-    return NextResponse.next();
+    return withPathname(req);
   }
 
   const token = req.cookies.get(COOKIE_NAME)?.value;
@@ -42,7 +48,7 @@ export default async function proxy(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.next();
+  return withPathname(req);
 }
 
 export const config = {

@@ -1,4 +1,5 @@
 import { Playfair_Display, Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -35,7 +36,11 @@ export async function generateMetadata() {
 export default async function RootLayout({ children }) {
   const settings = await getSettings();
 
-  if (settings.maintenanceMode) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isAdminRoute = pathname.startsWith("/admin");
+
+  if (settings.maintenanceMode && !isAdminRoute) {
     return (
       <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
         <body className="font-body antialiased flex min-h-screen items-center justify-center bg-champagne px-5 text-center">
