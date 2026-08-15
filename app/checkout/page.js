@@ -20,10 +20,10 @@ export default function CheckoutPage() {
     state: "Tamil Nadu",
     pincode: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [placedOrder, setPlacedOrder] = useState(null);
+  const [razorpayReady, setRazorpayReady] = useState(false);
   const [settings, setSettings] = useState({
     shippingFee: 49,
     freeShipping: 999,
@@ -42,6 +42,7 @@ export default function CheckoutPage() {
 
   // Look up the fee for the selected state; fall back to the default fee
   // when that state has no override configured in Settings.
+
   const stateFee = useMemo(() => {
     const match = (settings.stateShippingRates || []).find(
       (r) => r.state?.trim().toLowerCase() === form.state?.trim().toLowerCase()
@@ -68,42 +69,13 @@ export default function CheckoutPage() {
     return true;
   }
 
-  async function handleCOD(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     if (!validate()) return;
 
-    setLoading(true);
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: form,
-          items,
-          paymentMethod: "COD",
-          shippingFee,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to place order.");
-
-      setPlacedOrder(data.order);
-      clearCart();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRazorpay(e) {
-    e.preventDefault();
-    setError("");
-    if (!validate()) return;
-
-    if (!window.Razorpay) {
-      setError("Payment gateway not loaded yet. Please try again.");
+    if (!razorpayReady || !window.Razorpay) {
+      setError("Payment gateway is still loading. Please wait a moment and try again.");
       return;
     }
 
@@ -176,19 +148,12 @@ export default function CheckoutPage() {
     }
   }
 
-  function handleSubmit(e) {
-    if (paymentMethod === "COD") {
-      handleCOD(e);
-    } else {
-      handleRazorpay(e);
-    }
-  }
-
   if (!hydrated) return null;
 
   if (placedOrder) {
     return (
       <>
+
         <Navbar settings={settings} />
         <section className="mx-auto max-w-xl px-5 py-20 text-center md:px-8">
           <span className="badge-stamp mx-auto flex h-16 w-16 items-center justify-center border-gold/40 bg-forest text-ivory">
@@ -203,14 +168,14 @@ export default function CheckoutPage() {
             Save this number, or use your phone number, to track your order anytime.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            
-            <a  href="/track-order"
+            <a
+              href="/track-order"
               className="rounded-full border border-forest/30 px-8 py-3 text-sm font-semibold text-forest hover:bg-champagne"
             >
               Track Order
             </a>
-            
-             <a href="/products"
+            <a
+              href="/products"
               className="rounded-full bg-forest px-8 py-3 text-sm font-semibold text-ivory shadow-soft hover:bg-forest-light"
             >
               Continue Shopping
@@ -224,13 +189,19 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+        onLoad={() => setRazorpayReady(true)}
+      />
       <Navbar settings={settings} />
       <section className="mx-auto max-w-4xl px-5 py-12 md:px-8">
         <h1 className="font-display text-3xl font-bold text-forest">Checkout</h1>
 
         {items.length === 0 ? (
-          <p className="mt-8 text-muted">Your cart is empty. <a href="/products" className="text-forest underline">Shop now</a></p>
+          <p className="mt-8 text-muted">
+            Your cart is empty. <a href="/products" className="text-forest underline">Shop now</a>
+          </p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-8 grid gap-10 md:grid-cols-3">
             <div className="space-y-4 md:col-span-2">
@@ -262,27 +233,12 @@ export default function CheckoutPage() {
 
               <div>
                 <p className="mb-2 text-sm font-semibold text-ink">Payment Method</p>
-                <div className="flex gap-3">
-                  {["Online"].map((m) => (
-                    <button
-                      type="button"
-                      key={m}
-                      onClick={() => setPaymentMethod(m)}
-                      className={`rounded-full border px-5 py-2 text-xs font-semibold transition ${
-                        paymentMethod === m
-                          ? "border-forest bg-forest text-ivory"
-                          : "border-gold/30 text-ink/70 hover:bg-champagne"
-                      }`}
-                    >
-                      {m === "COD" ? "Cash on Delivery" : m}
-                    </button>
-                  ))}
+                <div className="rounded-full border border-forest bg-forest px-5 py-2 text-xs font-semibold text-ivory inline-block">
+                  Pay Online (Razorpay)
                 </div>
-                {paymentMethod !== "COD" && (
-                  <p className="mt-2 text-xs text-muted">
-                    You'll be redirected to Razorpay's secure checkout to complete payment.
-                  </p>
-                )}
+                <p className="mt-2 text-xs text-muted">
+                  You'll be redirected to Razorpay's secure checkout to complete payment.
+                </p>
               </div>
 
               {error && <p className="text-sm text-terracotta">{error}</p>}
@@ -316,7 +272,7 @@ export default function CheckoutPage() {
                 disabled={loading}
                 className="mt-6 w-full rounded-full bg-forest px-8 py-3.5 text-sm font-semibold text-ivory shadow-soft transition hover:bg-forest-light disabled:opacity-60"
               >
-                {loading ? "Processing..." : paymentMethod === "COD" ? "Place Order" : "Pay & Place Order"}
+                {loading ? "Processing..." : "Pay & Place Order"}
               </button>
             </div>
           </form>
