@@ -81,10 +81,19 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      // Send customer + items + shippingFee now (not just amount) so the
+      // server can save a PendingOrder before the user is redirected to
+      // Razorpay. If the browser never comes back after payment, the
+      // webhook uses this record to finish placing the order.
       const orderRes = await fetch("/api/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: total }),
+        body: JSON.stringify({
+          amount: total,
+          customer: form,
+          items,
+          shippingFee,
+        }),
       });
       const orderData = await orderRes.json();
       if (!orderRes.ok) throw new Error(orderData.error || "Failed to start payment.");
@@ -113,9 +122,6 @@ export default function CheckoutPage() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                customer: form,
-                items,
-                shippingFee,
               }),
             });
             const verifyData = await verifyRes.json();
@@ -153,7 +159,6 @@ export default function CheckoutPage() {
   if (placedOrder) {
     return (
       <>
-
         <Navbar settings={settings} />
         <section className="mx-auto max-w-xl px-5 py-20 text-center md:px-8">
           <span className="badge-stamp mx-auto flex h-16 w-16 items-center justify-center border-gold/40 bg-forest text-ivory">

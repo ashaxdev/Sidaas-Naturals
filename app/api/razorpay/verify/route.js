@@ -1,9 +1,9 @@
-// app/api/razorpay/verify/route.js
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
-import Product from "@/models/Product";
+import PendingOrder from "@/models/PendingOrder";
+import { buildOrderFromItems, decrementStock } from "@/lib/buildOrderFromItems";
 
 async function generateOrderNumber() {
   const prefix = "KMC";
@@ -20,14 +20,7 @@ export async function POST(req) {
   try {
     await connectDB();
     const body = await req.json();
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      customer,
-      items,
-      shippingFee = 0,
-    } = body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return NextResponse.json({ error: "Missing payment details." }, { status: 400 });
@@ -42,44 +35,33 @@ export async function POST(req) {
       return NextResponse.json({ error: "Payment verification failed." }, { status: 400 });
     }
 
-    if (!customer?.name || !customer?.phone || !customer?.address) {
-      return NextResponse.json({ error: "Name, phone and address are required." }, { status: 400 });
-    }
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: "Cart is empty." }, { status: 400 });
-    }
-
-    let subtotal = 0;
-    const validatedItems = [];
-
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product || !product.isActive) {
-        return NextResponse.json({ error: `Product unavailable: ${item.name || item.productId}` }, { status: 400 });
-      }
-      if (product.stock < item.quantity) {
-        return NextResponse.json({ error: `Insufficient stock for ${product.name}.` }, { status: 400 });
-      }
-      subtotal += product.price * item.quantity;
-      validatedItems.push({
-        product: product._id,
-        name: product.name,
-        image: product.images?.[0]?.url || "",
-        price: product.price,
-        quantity: item.quantity,
-        unit: product.unit,
-      });
+    // If the webhook already finished this order (it can race ahead of the
+    // browser, especially on slow connections), just return the existing one
+    // instead of creating a duplicate.
+    const existing = await Order.findOne({ "razorpay.orderId": razorpay_order_id });
+    if (existing) {
+      return NextResponse.json({ order: existing }, { status: 200 });
     }
 
-    const total = subtotal + Number(shippingFee || 0);
+    const pending = await PendingOrder.findOne({ razorpayOrderId: razorpay_order_id });
+    if (!pending) {
+      return NextResponse.json({ error: "Order session not found. Please contact support." }, { status: 404 });
+    }
+    if (pending.status === "completed" && pending.finalOrder) {
+      const order = await Order.findById(pending.finalOrder);
+      return NextResponse.json({ order }, { status: 200 });
+    }
+
+    const { validatedItems, subtotal } = await buildOrderFromItems(pending.items);
+    const total = subtotal + Number(pending.shippingFee || 0);
     const orderNumber = await generateOrderNumber();
 
     const order = await Order.create({
       orderNumber,
-      customer,
+      customer: pending.customer,
       items: validatedItems,
       subtotal,
-      shippingFee,
+      shippingFee: pending.shippingFee,
       total,
       paymentMethod: "Online",
       paymentStatus: "paid",
@@ -92,14 +74,15 @@ export async function POST(req) {
       },
     });
 
-    // Stock reduction — same as COD flow
-    for (const item of validatedItems) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
-    }
+    await decrementStock(validatedItems);
+
+    pending.status = "completed";
+    pending.finalOrder = order._id;
+    await pending.save();
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Payment verification failed." }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Payment verification failed." }, { status: 500 });
   }
 }
